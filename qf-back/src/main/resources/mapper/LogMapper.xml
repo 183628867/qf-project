@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dao.LogMapper">
+
+
+    <resultMap id="loginLogMap" type="com.pojo.Log">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="ip" column="ip"/>
+        <result property="browser" column="browser"/>
+        <result property="systemMc" column="system_mc"/>
+        <result property="insertDt" column="insert_dt"/>
+    </resultMap>
+
+    <resultMap id="loginLogCounts" type="map">
+        <result property="counts" column="counts"/>
+    </resultMap>
+
+    <!-- 录入登录日志   -->
+    <insert id="insertLoginLog">
+        insert into log(`name`,ip,browser,system_mc,insert_dt)VALUES (#{name},#{ip},#{browser},#{systemMc},sysDate())
+    </insert>
+
+
+    <!--    查询登录日志-->
+    <select id="selectLogList" resultMap="loginLogMap,loginLogCounts">
+        select SQL_CALC_FOUND_ROWS * from log
+        <if test="name != null and name != ''">
+            where name like concat('%', #{name}, '%')
+        </if>
+        order by insert_dt desc
+        LIMIT #{page,jdbcType=INTEGER},#{limit,jdbcType=INTEGER};
+        select found_rows() counts;
+    </select>
+
+
+    <select id="traffic" resultType="object">
+        select count(*) as num  from log where to_days(insert_dt) = to_days(now()) union all
+        SELECT count(*) as num FROM log WHERE TO_DAYS( NOW( ) ) - TO_DAYS( insert_dt) = 1 union all
+        SELECT count(*) as num FROM log where DATE_SUB(CURDATE(), INTERVAL 7 DAY) &lt;= date(insert_dt)  union all
+        select count(*) as num from log;
+    </select>
+
+
+    <select id="weekList" resultType="com.alibaba.fastjson.JSONObject"
+            statementType="CALLABLE">
+--         select count(*) as sum,date_format(insert_dt ,'%Y-%m-%d' ) as `date` from log  where DATE_SUB(CURDATE(), INTERVAL 7 DAY)  &lt;= date(insert_dt) group by `date`;
+                select a.click_date,IFNULL(b.num,0) as num
+        from (
+            SELECT curdate() as click_date
+            union all
+            SELECT date_sub(curdate(), interval 1 day) as click_date
+            union all
+            SELECT date_sub(curdate(), interval 2 day) as click_date
+            union all
+            SELECT date_sub(curdate(), interval 3 day) as click_date
+            union all
+            SELECT date_sub(curdate(), interval 4 day) as click_date
+            union all
+            SELECT date_sub(curdate(), interval 5 day) as click_date
+            union all
+            SELECT date_sub(curdate(), interval 6 day) as click_date
+        ) a left join (
+          select date(insert_dt) as datetime, count(*) as num
+          from log
+          group by date(insert_dt)
+        ) b on a.click_date = b.datetime;
+    </select>
+
+</mapper>

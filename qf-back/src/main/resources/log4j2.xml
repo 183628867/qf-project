@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <Appenders>
+        <!-- 控制台输出，格式，街配置多个（一般一个就够了） -->
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout charset="UTF-8" pattern="[%-5p] %d %c - %m%n"/>
+        </Console>
+
+        <File name="Info" fileName="logs/info.log">
+            <PatternLayout pattern="[%-5p] %d %c - %m%n"/>
+        </File>
+
+        <File name="ErrorFile" fileName="logs/error.log">
+            <PatternLayout pattern="[%-5p] %d %c - %m%n"/>
+        </File>
+    </Appenders>
+
+    <Loggers>
+        <!-- 在控制台打印info级别的系统日志 -->
+        <root level="info">
+            <AppenderRef ref="CONSOLE" additivity="false"/>
+        </root>
+
+        <!-- 在控制台打印sql执行产生的debug级别以上的日志 -->
+        <Logger name="com.dao" level="debug" additivity="false">
+            <AppenderRef ref="CONSOLE"></AppenderRef>
+        </Logger>
+
+        <!-- 在控制台打印controller层info级别以上的日志 -->
+        <Logger name="com.controller" level="INFO" additivity="false">
+            <AppenderRef ref="Info"></AppenderRef>
+        </Logger>
+
+        <!-- 在控制台打印service层err级别以上的日志 -->
+        <Logger name="com.service" level="error" additivity="false">
+            <AppenderRef ref="ErrorFile"></AppenderRef>
+        </Logger>
+
+    </Loggers>
+</configuration>

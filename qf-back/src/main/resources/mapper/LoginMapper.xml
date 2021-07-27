@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dao.LoginMapper">
+
+    <!-- 登陆   -->
+    <select id="login" resultType="com.pojo.Manager">
+        SELECT
+        id,
+        `name`,
+        account,
+        password,
+        img,
+        role_id as roleId,
+        DATE_FORMAT( insert_dt, '%Y-%m-%d %H:%m:%s' ) AS insert_dt
+        FROM
+        manager
+        where account = #{account} and delete_flag = '0'
+        and disable = '0'
+    </select>
+</mapper>

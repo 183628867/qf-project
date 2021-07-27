@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dao.MenuMapper">
+    <resultMap id="menu" type="com.pojo.Menu">
+        <id column="id" property="id"/>
+        <result column="menu_name" property="name"/>
+        <result column="parentId" property="parentId"/>
+        <result column="menu_url" property="path"/>
+        <result column="icon" property="icon"/>
+        <result column="parentName" property="parentName"/>
+    </resultMap>
+
+    <resultMap id="menuMap" type="map">
+        <result property="counts" column="counts"/>
+    </resultMap>
+    <!--	查询此角色的菜单权限	-->
+    <select id="findMenu" resultMap="menu">
+        SELECT
+        m.id,
+        m.parent_id,
+        m.menu_url,
+        m.menu_name,
+        m.icon,
+        m.order,
+        insert_dt
+        FROM
+        role_menu_associ rma
+        LEFT JOIN menu m ON m.id = rma.menu_id
+        WHERE
+        rma.delete_flag = '0'
+        and m.delete_flag = '0'
+        and rma.role_id = #{id}
+        order by `order`
+    </select>
+
+    <!--    查询所有的菜单-->
+    <select id="selectMenus" resultMap="menu,menuMap">
+        SELECT
+        m1.id,
+        m1.parent_id,
+        m1.menu_name,
+        m2.menu_name as parentName,
+        m1.icon,
+        m1.insert_dt,
+        m1.order,
+        m1.menu_url
+        FROM
+        menu m1 left join menu m2
+        on m1.parent_id = m2.id
+        WHERE
+        m1.delete_flag = '0'
+        order by `order`
+    </select>
+
+
+    <!--    添加菜单s-->
+    <insert id="addMenu" parameterType="com.pojo.request.AddMenuRequest">
+        insert into menu(parent_id, menu_url, menu_name, icon,`order`,insert_dt)
+        values (
+        #{parentId},
+        #{menuPath},
+        #{menuName},
+        #{menuIcon},
+        #{order},
+        sysDate()
+        )
+    </insert>
+
+    <update id="updateMenu" parameterType="com.pojo.request.UpdateMenuRequest">
+        update menu set
+        parent_id = #{parentId},
+        menu_url = #{menuPath},
+        menu_name = #{menuName},
+        icon = #{menuIcon},
+        `order` = #{order}
+        where id = #{id}
+    </update>
+
+
+    <select id="selectMenuCount" resultType="int">
+        select count(1) from menu where parent_id = #{id}
+    </select>
+
+    <delete id="deleteMenu">
+        delete from menu where id  = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dao.ManagerMapper">
+
+    <resultMap id="manager" type="com.pojo.Manager">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="img" column="img"/>
+        <result property="sex" column="sex"/>
+        <result property="account" column="account"/>
+        <result property="roleId" column="role_id"/>
+        <result property="disable" column="disable"/>
+        <result property="roleName" column="role_name"/>
+        <result property="insertDt" column="insert_dt"/>
+    </resultMap>
+    <resultMap id="managerMap" type="map">
+        <result property="counts" column="counts"/>
+    </resultMap>
+
+
+    <!--    添加管理员-->
+    <insert id="addManager" parameterType="com.pojo.request.AddManagerRequest">
+        insert into manager(`name`, password,sex,account,insert_dt)
+        value (
+        #{name},
+        #{password},
+        #{sex},
+        #{account},
+        sysDate()
+        )
+    </insert>
+
+
+    <!--    查找后台所有用户-->
+    <select id="findAllManager" resultMap="manager,managerMap">
+        SELECT SQL_CALC_FOUND_ROWS
+        m.*,
+        r.role_name
+        FROM
+        `manager` m
+        LEFT JOIN ( SELECT * FROM role WHERE delete_flag = 0 ) r ON r.id = m.role_id
+        WHERE
+        m.delete_flag = '0'
+        <if test="name != null and name != ''">
+            and name like concat('%', #{name}, '%')
+        </if>
+        <if test="account != null and account != ''">
+            and account like concat('%', #{account}, '%')
+        </if>
+        LIMIT #{page,jdbcType=INTEGER},#{limit,jdbcType=INTEGER};
+        select found_rows() counts;
+
+    </select>
+
+    <select id="selectManagerById" resultType="com.pojo.Manager">
+        select * from manager where delete_flag = '0' and id = #{id}
+    </select>
+
+
+    <!--  修改用户信息  -->
+    <update id="updateManager" parameterType="com.pojo.request.UpdateManagerRequest">
+        update manager set
+        <if test="account != null and account != ''">
+            account = #{account},
+        </if>
+        <if test="name != null and name != ''">
+            `name` = #{name},
+        </if>
+        <if test="sex != null and sex != ''">
+            sex = #{sex},
+        </if>
+        <if test="disable != null and disable != ''">
+            disable = #{disable},
+        </if>
+        <if test="roleId != null and roleId != ''">
+            role_id = #{roleId},
+        </if>
+        <if test="password != null and password != ''">
+            password = #{password},
+        </if>
+        <if test="deleteFlag != null and deleteFlag != ''">
+            delete_flag = #{deleteFlag},
+            delete_dt = sysDate(),
+        </if>
+        update_dt = sysDate(),
+        version = version + 1
+        where id = #{id}
+    </update>
+
+</mapper>

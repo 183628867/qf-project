@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.RoleMapper">
+    <resultMap id="BaseResultMap" type="com.pojo.Role">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="role_name" jdbcType="VARCHAR" property="roleName"/>
+        <result column="insert_dt" jdbcType="TIMESTAMP" property="insertDt"/>
+        <result column="update_dt" jdbcType="TIMESTAMP" property="updateDt"/>
+        <result column="delete_dt" jdbcType="TIMESTAMP" property="deleteDt"/>
+        <result column="delete_flag" jdbcType="CHAR" property="deleteFlag"/>
+        <result column="version" jdbcType="CHAR" property="version"/>
+    </resultMap>
+
+    <resultMap id="roleCounts" type="map">
+        <result column="counts" property="counts"/>
+    </resultMap>
+
+    <!--  查询所有角色  -->
+    <select id="selectAllRole" resultMap="BaseResultMap,roleCounts">
+        SELECT SQL_CALC_FOUND_ROWS
+        id,
+        role_name,
+        insert_dt,
+        update_dt,
+        delete_dt,
+        delete_flag,
+        version
+        FROM
+        role
+        WHERE
+        delete_flag = '0'
+        <if test="roleName != null and roleName != ''">
+            and role_name like concat(#{roleName},'%')
+        </if>
+        LIMIT #{page,jdbcType=INTEGER},#{limit,jdbcType=INTEGER};
+        SELECT found_rows() counts;
+    </select>
+
+
+    <!--  根据id删除此角色 -->
+    <update id="updateRoleId">
+        update role set
+        <if test="deleteFlag != null and deleteFlag != ''">
+            delete_flag = #{deleteFlag},
+            delete_dt = Sysdate(),
+        </if>
+        update_dt = sysDate(),
+        version = version + 1
+        where id = #{roleId}
+    </update>
+
+
+    <insert id="addRole">
+        insert into role (role_name,insert_dt)values(
+        #{roleName},
+        sysDate()
+        )
+    </insert>
+
+
+    <!--  给此角色批量添加权限  -->
+    <insert id="empowerment">
+        insert into role_menu_associ(role_id,menu_id)
+        value
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{roleId},#{item}
+            )
+        </foreach>
+    </insert>
+
+    <!--   删除此角色的所有权限     -->
+    <delete id="deleteEmpowerment">
+        delete FROM role_menu_associ where role_id = #{roleId}
+    </delete>
+
+
+</mapper>
