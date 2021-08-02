@@ -24,7 +24,7 @@ axios.interceptors.request.use(config => {
 	return Promise.resolve(err)
 })
 
-let base = "http://localhost:8080/qfBack/api/" // 接口域名
+let base = "http://localhost:8088/api/" // 接口域名
 
 export const request = (url, params, method, Func, isJson) => {
 	// console.log("请求的接口--->" + base + url);
